@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-4.3.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- MultipartResolver 설정 --> 
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> 
+		<property name="maxUploadSize" value="1073700000" /> 
+		<property name="maxInMemorySize" value="104857600" />
+	</bean>
+<!-- mybatis 설정 
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="org.mariadb.jdbc.Driver" />
+		<property name="url" value="jdbc:mariadb://localhost:3306/testdev" />
+		<property name="username" value="webmaster" />
+		<property name="password" value="12345" />
+	</bean>
+ -->
+	
+		 <!-- HikariCP Bean 설정 -->
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig"> 
+			<property name="idleTimeout" value="30000" />
+			<property name="connectionTimeout" value="3000" /> 
+			<property name="maxLifetime" value="400000" />
+			<property name="maximumPoolSize" value="300" /> 
+			<property name="minimumIdle" value="20" />
+			<property name="driverClassName" value="org.mariadb.jdbc.Driver" />
+			<property name="jdbcUrl" value="jdbc:mariadb://localhost:3306/testdev" />
+ 			<property name="username" value="webmaster" /> 
+			<property name="password" value="12345" /> 
+			<property name="poolName" value="MariaDB" />		
+	</bean>	
+
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+			<constructor-arg ref="hikariConfig" />
+	</bean>
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:/mybatis-config.xml" /> <!-- src/main/resources에 mybatis-config.xml 파일 만들기 -->
+		<property name="mapperLocations" value="classpath:mappers/**/*Mapper.xml" /> 
+	</bean>
+	
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" destroy-method="clearCache">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean>
+	
+	<context:component-scan base-package="com.BoardMaria.service" />
+	<context:component-scan base-package="com.BoardMaria.dao" />
+	
+	<mybatis-spring:scan base-package="com.BoardMaria.mapper"/>
+</beans>

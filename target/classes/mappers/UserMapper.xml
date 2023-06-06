@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.BoardMaria.mappers.User"> <!-- 가상의 패키지에 만들어짐 -->
+<!-- 아이디 중복 체크 -->
+<select id="idCheck" parameterType="string" resultType="int">
+	select count(*) from tbl_user where userid=#{userid}
+</select>
+
+<!-- 로그인 -->
+<select id="login" parameterType="string" resultType="com.BoardMaria.dto.User">
+	select userid,password,username,authkey,role from tbl_user where userid=#{userid}
+</select>
+
+<!-- 회원가입 -->
+<!-- hobby가 List일 경우 에러 발생 -->
+<insert id="signup" parameterType="com.BoardMaria.dto.User">
+	insert into tbl_user(userid,username,password,gender,hobby,job,description,zipcode,address,telno,email,role,org_filename,stored_filename,filesize,lastpwdate,pwcheck) 
+	values(#{userid}, #{username}, #{password}, #{gender}, #{hobby}, #{job}, #{description},#{zipcode},#{address},#{telno},#{email},'USER',#{org_filename},#{stored_filename},#{filesize},curdate(),1)
+</insert>
+
+<!-- 패스워드 변경 후 30일 경과 확인 -->
+<select id="pwcheck" parameterType="string" resultType="com.BoardMaria.dto.User">
+	select datediff(curdate(), lastpwdate) as pwdiff ,pwcheck from tbl_user where userid=#{userid}
+</select>
+
+<!-- 패스워드 확인 후 30일 이후에 패스워드 변경하도록 pwcheck 값 변경 -->
+<update id="userPasswordModifyAfter30" parameterType="string">
+	update tbl_user set pwcheck = (pwcheck +1) where userid=#{userid} 
+</update>
+
+<!-- 패스워드 수정하지 않을 경우 -->
+<update id="notPasswordUpdate" parameterType="com.BoardMaria.dto.User">
+	update tbl_user set lastpwdate = date_add(lastpwdate, INTERVAL 1 MONTH) where userid=#{userid}
+</update>
+
+<!-- 패스워드 수정 -->
+<update id="passwordUpdate" parameterType="com.BoardMaria.dto.User">
+	update tbl_user set password=#{password}, lastpwdate=curdate(), pwcheck=1 where userid=#{userid}
+</update>
+
+<!-- 사용자 자동 로그인을 위한 authkey 등록 -->
+<update id="authkeyUpdate" parameterType="com.BoardMaria.dto.User">
+	update tbl_user set authkey = #{authkey} where userid = #{userid}
+</update>
+
+<!-- 사용자 자동 로그인을 위한 authkey로 사용자 정보 가져오기 -->
+<select id="userinfoByAuthkey" parameterType="string" resultType="com.BoardMaria.dto.User">
+	select * from tbl_user where authkey = #{authkey}
+</select>
+
+<!-- 사용자 정보 -->
+<select id="userinfo" parameterType="string" resultType="com.BoardMaria.dto.User">
+	select * from tbl_user where userid = #{userid}
+</select>
+
+<!-- 사용자 정보 수정 -->
+<update id="userInfoUpdate" parameterType="com.BoardMaria.dto.User">
+	update tbl_user set telno=#{telno}, email=#{email}, zipcode=#{zipcode},
+		address=#{address}, org_filename=#{org_filename}, stored_filename=#{stored_filename},
+		filesize=#{filesize}, description=#{description}, gender=#{gender}, job=#{job} where userid=#{userid}
+</update>
+
+<!-- 사용자 아이디 찾기 -->
+<select id="searchID" parameterType="com.BoardMaria.dto.User" resultType="string">
+	select userid from tbl_user where username=#{username} and telno=#{telno}
+</select>
+
+<!-- 패스워드 임시 발급을 위한 확인 -->
+<select id="searchPassword" parameterType="com.BoardMaria.dto.User" resultType="int">
+	select count(*) from tbl_user where userid=#{userid} and username=#{username}
+</select>
+
+<!-- 우편번호 행 최대 갯수 계산 -->
+<select id="addrTotalCount" parameterType="string" resultType="int">
+	select count(*) from tbl_addr where road like concat('%',#{addSearch},'%')
+		or building like concat('%',#{addrSearch},'%')
+</select>
+
+<!-- 우편번호 검색 -->
+<select id="addrSearch" parameterType="HashMap" resultType="com.BoardMaria.dto.AddressVO">
+	select zipcode, province, road, building, oldaddr from tbl_addr
+	where road like concat('%',#{addSearch},'%') or building like concat('%',#{addrSearch},'%')
+	order by zipcode limit #{startPoint}, #{postNum}
+</select>
+</mapper>

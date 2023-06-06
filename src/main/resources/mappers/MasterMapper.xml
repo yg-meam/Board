@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.BoardMaria.mappers.Master"> <!-- 가상의 패키지에 만들어짐 -->
+
+<!-- 삭제할 파일 갯수 가져오기 -->
+<select id="filedeleteCount" resultType="int">
+	select count(*) from tbl_file where checkfile = 'N'
+</select>
+
+<!-- 삭제할 파일 목록 정보 -->
+<select id="filedeleteList" resultType="com.BoardMaria.dto.FileVO">
+	select * from tbl_file where checkfile = 'N' order by fileseqno
+</select>
+
+<!-- 파일 정보 삭제 -->
+<delete id="deleteFile" parameterType="int">
+	delete from tbl_file where fileseqno = #{fileseqno}
+</delete>
+</mapper>
